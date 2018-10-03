@@ -1,0 +1,114 @@
+Log File Is Successfully Opened.
+D3D11CreateDeviceAndSwapChain() Succeeded.
+The Chosen Driver Is Of Hardware Type.
+The Supported Highest Feature Level Is 11.0
+Vertex shader compilation successful.
+Vertex shader object creation success.
+Vertex shader compilation success.
+pixel shader object creation success.
+Input layout creation success.
+Vertext buffer creation failed.
+Constant buffer creation success (cbuffer).
+Vertext buffer creation failed.
+Constant buffer creation success (cbuffer).
+Create render target view succeeed in Resize function.
+Resize Succeeded from initialize function
+initialize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Create render target view succeeed in Resize function.
+resize() Succeeded.
+Un initilize successful
+Log file closed successfully.
+Un initilize successful
+Log file closed successfully.
