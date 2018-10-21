@@ -69,21 +69,22 @@ short sphere_elements[2280];
 Sphere *sphere = new Sphere();
 
 float lightAmbient[] = { 0.0f,0.0f,0.0f,1.0f };
-float lightDiffuse[] = { 1.0f,1.0f,1.0f,1.0f };
+float lightDiffuse[] = { 1.0f,0.0f,0.0f,1.0f }; //******************* Send RED COLOR but not getting applied **********************
 float lightSpecular[] = { 1.0f,1.0f,1.0f,1.0f };
-float lightPosition[] = { 100.0f,100.0f,-100.0f,1.0f };
+float lightPosition[] = { 100.0f,100.0f,100.0f,1.0f };
 
 float material_ambient[] = { 0.0f,0.0f,0.0f,1.0f };
 float material_diffuse[] = { 1.0f,1.0f,1.0f,1.0f };
 float material_specular[] = { 1.0f,1.0f,1.0f,1.0f };
 float material_shininess = 50.0f;
 
+
 struct CBUFFER
 {
 	XMMATRIX model_matrix;
 	XMMATRIX view_matrix;
 	XMMATRIX projection_matrix;
-	
+
 	XMVECTOR Ld_uniform;
 	XMVECTOR Ls_uniform;
 	XMVECTOR La_uniform;
@@ -514,10 +515,10 @@ HRESULT initialize(void)
 		"out_vertex output;"\
 		"if(L_KeyPressed_uniform==1)"\
 		"{"\
-		"float4 eyeCoordinated=mul(model_matrix , pos);"\
-		"eyeCoordinated=mul(view_matrix,eyeCoordinated );"\
-		"float3 transformed_normals=mul(mul((float3x3)view_matrix,(float3x3)model_matrix),(float3)normal);"\
-		"float3 light_direction = (float3)Lp_uniform-eyeCoordinated.xyz;"\
+		"float4x4 eyeCoordiTemp=mul(view_matrix,model_matrix);"\
+		"float4 eyeCoordinated=mul(eyeCoordiTemp,pos );"\
+		"float3 transformed_normals=mul(mul(view_matrix,model_matrix),(float3)normal);"\
+		"float3 light_direction = ((float3)Lp_uniform)-eyeCoordinated.xyz;"\
 		"float3 viewer_vector = -eyeCoordinated.xyz;" \
 
 		"output.trabsformed_normal=transformed_normals;"\
@@ -526,9 +527,9 @@ HRESULT initialize(void)
 		/*saturate can be used inplace of max function in D3D*/
 		"}"\
 
-		"float4x4 localposition = mul(projection_matrix, view_matrix);"
+		"float4x4 localposition = mul(projection_matrix, view_matrix);"\
 		"localposition =mul(localposition ,model_matrix );"\
-		"output.position=mul(localposition,pos);"
+		"output.position=mul(localposition,pos);"\
 		"return(output);" \
 		"}";
 
@@ -618,7 +619,6 @@ HRESULT initialize(void)
 
 		"uint L_KeyPressed_uniform;"\
 		"}" \
-
 		"struct out_vertex"\
 		"{"\
 		"float4 position:SV_POSITION;"\
@@ -638,20 +638,20 @@ HRESULT initialize(void)
 		"float3 normalized_viewer_vector=normalize(float3(input.viewer_vector.x,input.viewer_vector.y,input.viewer_vector.z));" \
 
 		"float tn_dot_ld = max(dot(normalized_transformed_normals,normalized_light_direction),0.0);"\
-		"float3 ambient = mul((float3)La_uniform , (float3)Ka_uniform);" \
-		"float3 diffuse = mul(mul((float3)Ld_uniform , (float3)Kd_uniform) , tn_dot_ld);" \
+		"float3 ambient = (float3)La_uniform * (float3)Ka_uniform;" \
+		"float3 diffuse = (float3)Ld_uniform * (float3)Kd_uniform *  tn_dot_ld;" \
 		"float3 reflection_vector = reflect(-normalized_light_direction, normalized_transformed_normals);" \
-		"float3 LsKs_mul=mul((float3)Ls_uniform , (float3)Ks_uniform);"\
+		"float3 LsKs_mul=(float3)Ls_uniform * (float3)Ks_uniform;"\
 		"float3 RvVv = pow(max(dot(reflection_vector, normalized_viewer_vector), 0.0), 50.0f); "\
-		"float3 specular = mul((float3)LsKs_mul,(float3) RvVv);" \
-		"float3 outColor=ambient + diffuse + specular;"
+		"float3 specular = (float3)LsKs_mul*(float3) RvVv;" \
+		"float3 outColor=ambient + diffuse + specular;"\
 		"phong_ads_color=float4(outColor,1.0);" \
 		"}" \
 		"else" \
 		"{" \
-			"phong_ads_color=float4(1.0,1.0,1.0,1.0);"\
+		"phong_ads_color=float4(1.0,1.0,1.0,1.0);"\
 		"}" \
-			"return (phong_ads_color);" \
+		"return (phong_ads_color);" \
 		"}";
 
 
@@ -1071,7 +1071,7 @@ void display(void)
 
 	if (gbLight == true)
 	{
-		/*constantBuffer.La_uniform = XMVectorSet(lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);
+		constantBuffer.La_uniform = XMVectorSet(lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);
 		constantBuffer.Ld_uniform = XMVectorSet(lightDiffuse[0], lightDiffuse[1], lightDiffuse[2], lightDiffuse[3]);
 		constantBuffer.Ls_uniform = XMVectorSet(lightSpecular[0], lightSpecular[1], lightSpecular[2], lightSpecular[3]);
 		constantBuffer.Lp_uniform = XMVectorSet(lightPosition[0], lightPosition[1], lightPosition[2], lightPosition[3]);
@@ -1079,19 +1079,19 @@ void display(void)
 		constantBuffer.Ka_uniform = XMVectorSet(material_ambient[0], material_ambient[1], material_ambient[2], material_ambient[3]);
 		constantBuffer.Kd_uniform = XMVectorSet(material_diffuse[0], material_diffuse[1], material_diffuse[2], material_diffuse[3]);
 		constantBuffer.Ks_uniform = XMVectorSet(material_specular[0], material_specular[1], material_specular[2], material_specular[3]);
-		*/
+
 
 		constantBuffer.L_KeyPressed_uniform = 1;
 
 
-		constantBuffer.La_uniform = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+		/*constantBuffer.La_uniform = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 		constantBuffer.Ld_uniform = XMVectorSet(1.0f, 0.0f, 0.0f, 1.0f);
 		constantBuffer.Ls_uniform = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
 		constantBuffer.Lp_uniform = XMVectorSet(100.0f, 100.0f, 100.0f, 1.0f);
 
 		constantBuffer.Ka_uniform = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 		constantBuffer.Kd_uniform = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-		constantBuffer.Ks_uniform = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
+		constantBuffer.Ks_uniform = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);*/
 
 
 	}

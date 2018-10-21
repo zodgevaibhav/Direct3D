@@ -8,8 +8,6 @@ Vertex shader compilation success.
 pixel shader object creation success.
 Input layout creation success.
 ID3D11Device::CreateBuffer() Succeeded For Vertex Buffer For Cube Position.
-Vertex Buffer creation successfulull for Cube Texture.
-Vertext buffer creation success for color.
 Constant Buffer creation succeed.
 ID3D11Device::CreateRasterizerState() Succeeded For Culling.
 CreateWICTextureFromFile() Succeeded For Texture Resource.
@@ -19,8 +17,5 @@ Create render target view succeeed in Resize function.
 ID3D11Device::CreateDepthStencilView() Succeeded.
 resize() Succeeded.
 initialize() Succeeded.
-Create render target view succeeed in Resize function.
-ID3D11Device::CreateDepthStencilView() Succeeded.
-resize() Succeeded.
 uninitialize() Succeeded
 Log File Is Successfully Closed.

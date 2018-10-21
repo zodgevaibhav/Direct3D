@@ -6,6 +6,7 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.jpg
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -212,3 +213,4 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+

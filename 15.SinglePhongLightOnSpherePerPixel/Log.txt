@@ -17,5 +17,3 @@ initialize() Succeeded.
 L key presed, light is on.
 Un initilize successful
 Log file closed successfully.
-Un initilize successful
-Log file closed successfully.

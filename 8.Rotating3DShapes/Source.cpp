@@ -283,6 +283,8 @@ HRESULT initialize(void)
 {
 	void uninitialize(void);
 	HRESULT resize(int, int);
+	HRESULT LoadD3DTexture(const wchar_t *, ID3D11ShaderResourceView **);
+
 
 	HRESULT hr;
 	D3D_DRIVER_TYPE d3dDriverType; //this local temp variable will used in loop for storing driver type temporary.

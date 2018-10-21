@@ -49,9 +49,7 @@ ID3D11PixelShader *gpID3D11PixelShader = NULL; //fragment shader Object
 
 
 
-ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Position_Cube = NULL;
-ID3D11Buffer *gpID3D11Buffer_VertexBuffer_Texture_Cube = NULL;
-ID3D11Buffer *gpID3D11Buffer_VertexBuffer_quads_color = NULL;
+ID3D11Buffer *gpID3D11Buffer_VertexBuffer_cube_vcnp = NULL;
 
 
 ID3D11InputLayout *gpID3D11InputLayout = NULL; //same as attributes in OPenGL
@@ -440,7 +438,7 @@ HRESULT initialize(void)
 		"float2 texcoord : TEXCOORD;" \
 		"float4 out_color : OUT_COLOR;" \
 		"};" \
-		"vertex_output main(float4 pos : POSITION, float2 texcoord : TEXCOORD, float4 color : VCOLOR)" \
+		"vertex_output main(float4 pos : POSITION, float4 color : VCOLOR, float4 normal : NORMAL , float2 texcoord : TEXCOORD)" \
 		"{" \
 		"vertex_output output;" \
 		"output.position = mul(worldViewProjectionMatrix, pos);" \
@@ -592,32 +590,40 @@ HRESULT initialize(void)
 	pID3DBlob_PixelShaderCode = NULL;
 
 	//********************************************* Input layout {glBindAtrribLocation}
-	D3D11_INPUT_ELEMENT_DESC inputElementDesc[3]; //Structure
-	ZeroMemory(&inputElementDesc, sizeof(D3D11_INPUT_ELEMENT_DESC)); //clear memory or zero memory
+	//D3D11_INPUT_ELEMENT_DESC inputElementDesc[4]; //Structure
 
-	inputElementDesc[0].SemanticName = "POSITION";
-	inputElementDesc[0].SemanticIndex = 0;
-	inputElementDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	inputElementDesc[0].InputSlot = 0; // 0 for vertex position
-	inputElementDesc[0].AlignedByteOffset = 0;
-	inputElementDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA; //Vertex shader is per vertex data. Per pixes is pixel shader
-	inputElementDesc[0].InstanceDataStepRate = 0; //Number of instances to draw 
+	D3D11_INPUT_ELEMENT_DESC inputElementDesc[4]=
+	{
+		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
+		{ "VCOLOR",0,DXGI_FORMAT_R32G32B32_FLOAT,1,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
+		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,2,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+		{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,3,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 }
+	};
+	//ZeroMemory(&inputElementDesc, sizeof(D3D11_INPUT_ELEMENT_DESC)); //clear memory or zero memory
 
-	inputElementDesc[1].SemanticName = "TEXCOORD";
-	inputElementDesc[1].SemanticIndex = 0;
-	inputElementDesc[1].Format = DXGI_FORMAT_R32G32_FLOAT;
-	inputElementDesc[1].InputSlot = 1; //for textcords //this needs to be 1 as at 0 position we already sent vertices.
-	inputElementDesc[1].AlignedByteOffset = 0;
-	inputElementDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA; //Vertex shader is per vertex data. Per pixes is pixel shader
-	inputElementDesc[1].InstanceDataStepRate = 0;
+	//inputElementDesc[0].SemanticName = "POSITION";
+	//inputElementDesc[0].SemanticIndex = 0;
+	//inputElementDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//inputElementDesc[0].InputSlot = 0; // 0 for vertex position
+	//inputElementDesc[0].AlignedByteOffset = 0;
+	//inputElementDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA; //Vertex shader is per vertex data. Per pixes is pixel shader
+	//inputElementDesc[0].InstanceDataStepRate = 0; //Number of instances to draw 
 
-	inputElementDesc[2].SemanticName = "VCOLOR";
-	inputElementDesc[2].SemanticIndex = 0;
-	inputElementDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	inputElementDesc[2].InputSlot = 2; //for textcords //this needs to be 1 as at 0 position we already sent vertices.
-	inputElementDesc[2].AlignedByteOffset = 0;
-	inputElementDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA; //Vertex shader is per vertex data. Per pixes is pixel shader
-	inputElementDesc[2].InstanceDataStepRate = 0;
+	//inputElementDesc[1].SemanticName = "TEXCOORD";
+	//inputElementDesc[1].SemanticIndex = 0;
+	//inputElementDesc[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+	//inputElementDesc[1].InputSlot = 1; //for textcords //this needs to be 1 as at 0 position we already sent vertices.
+	//inputElementDesc[1].AlignedByteOffset = 0;
+	//inputElementDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA; //Vertex shader is per vertex data. Per pixes is pixel shader
+	//inputElementDesc[1].InstanceDataStepRate = 0;
+
+	//inputElementDesc[2].SemanticName = "VCOLOR";
+	//inputElementDesc[2].SemanticIndex = 0;
+	//inputElementDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	//inputElementDesc[2].InputSlot = 2; //for textcords //this needs to be 1 as at 0 position we already sent vertices.
+	//inputElementDesc[2].AlignedByteOffset = 0;
+	//inputElementDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA; //Vertex shader is per vertex data. Per pixes is pixel shader
+	//inputElementDesc[2].InstanceDataStepRate = 0;
 
 
 
@@ -641,145 +647,55 @@ HRESULT initialize(void)
 
 	//**************************************************  END Input layout**********************************************************
 
-
-	//********************************** cube Vertices ******************************************
-	float cube_vertices[] =
-	{
-		// SIDE 1 ( TOP )
-		// triangle 1
-		-1.0f, +1.0f, +1.0f,
-		+1.0f, +1.0f, +1.0f,
-		-1.0f, +1.0f, -1.0f,
-		// triangle 2
-		-1.0f, +1.0f, -1.0f,
-		+1.0f, +1.0f, +1.0f,
-		+1.0f, +1.0f, -1.0f,
-
-		// SIDE 2 ( BOTTOM )
-		// triangle 1
-		+1.0f, -1.0f, -1.0f,
-		+1.0f, -1.0f, +1.0f,
-		-1.0f, -1.0f, -1.0f,
-		// triangle 2
-		-1.0f, -1.0f, -1.0f,
-		+1.0f, -1.0f, +1.0f,
-		-1.0f, -1.0f, +1.0f,
-
-		// SIDE 3 ( FRONT )
-		// triangle 1
-		-1.0f, +1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		// triangle 2
-		-1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		+1.0f, -1.0f, -1.0f,
-
-		// SIDE 4 ( BACK )
-		// triangle 1
-		+1.0f, -1.0f, +1.0f,
-		+1.0f, +1.0f, +1.0f,
-		-1.0f, -1.0f, +1.0f,
-		// triangle 2
-		-1.0f, -1.0f, +1.0f,
-		+1.0f, +1.0f, +1.0f,
-		-1.0f, +1.0f, +1.0f,
-
-		// SIDE 5 ( LEFT )
-		// triangle 1
-		-1.0f, +1.0f, +1.0f,
-		-1.0f, +1.0f, -1.0f,
-		-1.0f, -1.0f, +1.0f,
-		// triangle 2
-		-1.0f, -1.0f, +1.0f,
-		-1.0f, +1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-
-		// SIDE 6 ( RIGHT )
-		// triangle 1
-		+1.0f, -1.0f, -1.0f,
-		+1.0f, +1.0f, -1.0f,
-		+1.0f, -1.0f, +1.0f,
-		// triangle 2
-		+1.0f, -1.0f, +1.0f,
-		+1.0f, +1.0f, -1.0f,
-		+1.0f, +1.0f, +1.0f,
+	//*******************************************************************************************************************
+	//*******************************************************************************************************************
+	float cubeVCNT[] = {
+		-1.0f, +1.0f, +1.0f,1.0f, 0.0f, 0.0f,0.0f, +1.0f, 0.0f,+0.0f, +0.0f,
+		+1.0f, +1.0f, +1.0f,1.0f, 0.0f, 0.0f,0.0f, +1.0f, 0.0f,+0.0f, +1.0f,
+		-1.0f, +1.0f, -1.0f,1.0f, 0.0f, 0.0f,0.0f, +1.0f, 0.0f,+1.0f, +0.0f,
+		-1.0f, +1.0f, -1.0f,1.0f, 0.0f, 0.0f,0.0f, +1.0f, 0.0f,+1.0f, +0.0f,
+		+1.0f, +1.0f, +1.0f,1.0f, 0.0f, 0.0f,0.0f, +1.0f, 0.0f,+0.0f, +1.0f,
+		+1.0f, +1.0f, -1.0f,1.0f, 0.0f, 0.0f,0.0f, +1.0f, 0.0f,+1.0f, +1.0f,
+		+1.0f, -1.0f, -1.0f,0.0f, 1.0f, 0.0f,0.0f, -1.0f, 0.0f,+0.0f, +0.0f,
+		+1.0f, -1.0f, +1.0f,0.0f, 1.0f, 0.0f,0.0f, -1.0f, 0.0f,+0.0f, +1.0f,
+		-1.0f, -1.0f, -1.0f,0.0f, 1.0f, 0.0f,0.0f, -1.0f, 0.0f,+1.0f, +0.0f,
+		-1.0f, -1.0f, -1.0f,0.0f, 1.0f, 0.0f,0.0f, -1.0f, 0.0f,+1.0f, +0.0f,
+		+1.0f, -1.0f, +1.0f,0.0f, 1.0f, 0.0f,0.0f, -1.0f, 0.0f,+0.0f, +1.0f,
+		-1.0f, -1.0f, +1.0f,0.0f, 1.0f, 0.0f,0.0f, -1.0f, 0.0f,+1.0f, +1.0f,
+		-1.0f, +1.0f, -1.0f,0.0f, 0.0f, 1.0f,0.0f, 0.0f, -1.0f,+0.0f, +0.0f,
+		1.0f, 1.0f, -1.0f,0.0f, 0.0f, 1.0f,0.0f, 0.0f, -1.0f,+0.0f, +1.0f,
+		-1.0f, -1.0f, -1.0f,0.0f, 0.0f, 1.0f,0.0f, 0.0f, -1.0f,+1.0f, +0.0f,
+		-1.0f, -1.0f, -1.0f,0.0f, 0.0f, 1.0f,0.0f, 0.0f, -1.0f,+1.0f, +0.0f,
+		1.0f, 1.0f, -1.0f,0.0f, 0.0f, 1.0f,0.0f, 0.0f, -1.0f,+0.0f, +1.0f,
+		+1.0f, -1.0f, -1.0f,0.0f, 0.0f, 1.0f,0.0f, 0.0f, -1.0f,+1.0f, +1.0f,
+		+1.0f, -1.0f, +1.0f,0.0f, 1.0f, 1.0f,0.0f, 0.0f, +1.0f,+0.0f, +0.0f,
+		+1.0f, +1.0f, +1.0f,0.0f, 1.0f, 1.0f,0.0f, 0.0f, +1.0f,+0.0f, +1.0f,
+		-1.0f, -1.0f, +1.0f,0.0f, 1.0f, 1.0f,0.0f, 0.0f, +1.0f,+1.0f, +0.0f,
+		-1.0f, -1.0f, +1.0f,0.0f, 1.0f, 1.0f,0.0f, 0.0f, +1.0f,+1.0f, +0.0f,
+		+1.0f, +1.0f, +1.0f,0.0f, 1.0f, 1.0f,0.0f, 0.0f, +1.0f,+0.0f, +1.0f,
+		-1.0f, +1.0f, +1.0f,0.0f, 1.0f, 1.0f,0.0f, 0.0f, +1.0f,+1.0f, +1.0f,
+		-1.0f, +1.0f, +1.0f,1.0f, 0.0f, 1.0f,-1.0f, 0.0f, 0.0f,+0.0f, +0.0f,
+		-1.0f, +1.0f, -1.0f,1.0f, 0.0f, 1.0f,-1.0f, 0.0f, 0.0f,+0.0f, +1.0f,
+		-1.0f, -1.0f, +1.0f,1.0f, 0.0f, 1.0f,-1.0f, 0.0f, 0.0f,+1.0f, +0.0f,
+		-1.0f, -1.0f, +1.0f,1.0f, 0.0f, 1.0f,-1.0f, 0.0f, 0.0f,+1.0f, +0.0f,
+		-1.0f, +1.0f, -1.0f,1.0f, 0.0f, 1.0f,-1.0f, 0.0f, 0.0f,+0.0f, +1.0f,
+		-1.0f, -1.0f, -1.0f,1.0f, 0.0f, 1.0f,-1.0f, 0.0f, 0.0f,+1.0f, +1.0f,
+		+1.0f, -1.0f, -1.0f,1.0f, 1.0f, 0.0f,+1.0f, 0.0f, 0.0f,+0.0f, +0.0f,
+		+1.0f, +1.0f, -1.0f,1.0f, 1.0f, 0.0f,+1.0f, 0.0f, 0.0f,+0.0f, +1.0f,
+		+1.0f, -1.0f, +1.0f,1.0f, 1.0f, 0.0f,+1.0f, 0.0f, 0.0f,+1.0f, +0.0f,
+		+1.0f, -1.0f, +1.0f,1.0f, 1.0f, 0.0f,+1.0f, 0.0f, 0.0f,+1.0f, +0.0f,
+		+1.0f, +1.0f, -1.0f,1.0f, 1.0f, 0.0f,+1.0f, 0.0f, 0.0f,+0.0f, +1.0f,
+		+1.0f, +1.0f, +1.0f,1.0f, 1.0f, 0.0f,+1.0f, 0.0f, 0.0f,+1.0f, +1.0f
 	};
 
-	//********************************** cube textcords ******************************************
-	float cube_texcoords[] =
-	{
-		// SIDE 1 ( TOP )
-		// triangle 1
-		+0.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +0.0f,
-		// triangle 2
-		+1.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +1.0f,
-
-		// SIDE 2 ( BOTTOM )
-		// triangle 1
-		+0.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +0.0f,
-		// triangle 2
-		+1.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +1.0f,
-
-		// SIDE 3 ( FRONT )
-		// triangle 1
-		+0.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +0.0f,
-		// triangle 2
-		+1.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +1.0f,
-
-		// SIDE 4 ( BACK )
-		// triangle 1
-		+0.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +0.0f,
-		// triangle 2
-		+1.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +1.0f,
-
-		// SIDE 5 ( LEFT )
-		// triangle 1
-		+0.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +0.0f,
-		// triangle 2
-		+1.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +1.0f,
-
-		// SIDE 6 ( RIGHT )
-		// triangle 1
-		+0.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +0.0f,
-		// triangle 2
-		+1.0f, +0.0f,
-		+0.0f, +1.0f,
-		+1.0f, +1.0f,
-	};
-
-	// PYRAMID
-	// create vertex buffer
 	D3D11_BUFFER_DESC bufferDesc; // declare buffer ~ vbo. Structure 
 
 	ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
 	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	bufferDesc.ByteWidth = sizeof(float) * _ARRAYSIZE(cube_vertices); // size is sizeof(float) * 3 because there are 3 rows in vertices array
+	bufferDesc.ByteWidth = sizeof(float) * _ARRAYSIZE(cubeVCNT); // size is sizeof(float) * 3 because there are 3 rows in vertices array
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;     //This buffer need to bind to vertex buffer.
 	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;  // allow CPU to write into this buffer
-	hr = gpID3D11Device->CreateBuffer(&bufferDesc, NULL, &gpID3D11Buffer_VertexBuffer_Position_Cube);
+	hr = gpID3D11Device->CreateBuffer(&bufferDesc, NULL, &gpID3D11Buffer_VertexBuffer_cube_vcnp);
 	if (FAILED(hr))
 	{
 		fopen_s(&gpFile, gszLogFileName, "a+");
@@ -797,137 +713,14 @@ HRESULT initialize(void)
 	// copy vertices into above buffer
 	D3D11_MAPPED_SUBRESOURCE mappedSubresource;
 	ZeroMemory(&mappedSubresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer_Position_Cube, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource); // map buffer
-	memcpy(mappedSubresource.pData, cube_vertices, sizeof(float)*_ARRAYSIZE(cube_vertices));
-	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_Position_Cube, NULL);
+	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer_cube_vcnp, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource); // map buffer
+	memcpy(mappedSubresource.pData, cubeVCNT, sizeof(float)*_ARRAYSIZE(cubeVCNT));
+	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_cube_vcnp, NULL);
 
-	ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC));
-	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	bufferDesc.ByteWidth = sizeof(float) * _ARRAYSIZE(cube_texcoords);
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;     //This buffer need to bind to vertex buffer.
-	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;  // allow CPU to write into this buffer
-	hr = gpID3D11Device->CreateBuffer(&bufferDesc, NULL, &gpID3D11Buffer_VertexBuffer_Texture_Cube);
-	if (FAILED(hr))
-	{
-		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "Vertex Buffer creation failed for Cube Texture.\n");
-		fclose(gpFile);
-		return(hr);
-	}
-	else
-	{
-		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "Vertex Buffer creation successfulull for Cube Texture.\n");
-		fclose(gpFile);
-	}
+	//*******************************************************************************************************************
+	//*******************************************************************************************************************
 
-	// copy vertex texcoords into above buffer
-	ZeroMemory(&mappedSubresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer_Texture_Cube, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &mappedSubresource); // map buffer
-	memcpy(mappedSubresource.pData, cube_texcoords, sizeof(cube_texcoords));
-	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_Texture_Cube, NULL);
-
-
-	float colorQuads[] = //winding orer is left hand (anti clock wise) winding order for DirectX. OpenGL winding order was right hand
-	{
-		1.0f, 0.0f, 0.0f, //RED
-		1.0f, 0.0f, 0.0f, //RED
-		1.0f, 0.0f, 0.0f, //RED
-
-		1.0f, 0.0f, 0.0f, //RED
-		1.0f, 0.0f, 0.0f, //RED
-		1.0f, 0.0f, 0.0f, //RED
-
-		1.0f, 0.0f, 1.0f, //MAGENTA
-		1.0f, 0.0f, 1.0f, //MAGENTA
-		1.0f, 0.0f, 1.0f, //MAGENTA
-
-		1.0f, 0.0f, 1.0f, //MAGENTA
-		1.0f, 0.0f, 1.0f, //MAGENTA
-		1.0f, 0.0f, 1.0f, //MAGENTA
-
-		0.0f, 1.0f, 1.0f, //CYAN
-		0.0f, 1.0f, 1.0f, //CYAN
-		0.0f, 1.0f, 1.0f, //CYAN
-
-		0.0f, 1.0f, 1.0f, //CYAN
-		0.0f, 1.0f, 1.0f, //CYAN
-		0.0f, 1.0f, 1.0f, //CYAN
-
-		0.0f, 0.0f, 1.0f, //BLUE
-		0.0f, 0.0f, 1.0f, //BLUE
-		0.0f, 0.0f, 1.0f, //BLUE
-
-		0.0f, 0.0f, 1.0f, //BLUE
-		0.0f, 0.0f, 1.0f, //BLUE
-		0.0f, 0.0f, 1.0f, //BLUE
-
-		0.0f, 1.0f, 0.0f, //GREEN
-		0.0f, 1.0f, 0.0f, //GREEN
-		0.0f, 1.0f, 0.0f, //GREEN
-
-		0.0f, 1.0f, 0.0f, //GREEN
-		0.0f, 1.0f, 0.0f, //GREEN
-		0.0f, 1.0f, 0.0f, //GREEN
-
-		1.0f, 1.0f, 0.0f, //YELLOW
-		1.0f, 1.0f, 0.0f, //YELLOW
-		1.0f, 1.0f, 0.0f, //YELLOW
-
-		1.0f, 1.0f, 0.0f, //YELLOW
-		1.0f, 1.0f, 0.0f, //YELLOW
-		1.0f, 1.0f, 0.0f, //YELLOW
-
-	};
-
-
-	bufferDesc; // declare buffer ~ vbo. Structure 
-	ZeroMemory(&bufferDesc, sizeof(D3D11_BUFFER_DESC)); //clear memory or zero memory
-
-
-	bufferDesc.Usage = D3D11_USAGE_DYNAMIC; //Dynamic draw, GL_STATIC_DRAW or GL_DYNAMIC_DRAW
-	bufferDesc.ByteWidth = sizeof(float) * _ARRAYSIZE(colorQuads); //sizeof(float) * sizeof(vertices).
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER; //This buffer need to bind to vertex buffer.
-	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE; //allowing GPU to write on to this buffer
-
-	hr = gpID3D11Device->CreateBuffer(&bufferDesc, NULL, &gpID3D11Buffer_VertexBuffer_quads_color); //Create VBO
-	if (FAILED(hr))
-	{
-		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "Vertext buffer creation failed for color.\n");
-		fclose(gpFile);
-		return(hr);
-	}
-	else
-	{
-		fopen_s(&gpFile, gszLogFileName, "a+");
-		fprintf_s(gpFile, "Vertext buffer creation success for color.\n");
-		fclose(gpFile);
-	}
-
-	//Map resource (vertex buffer) with device context. Map the vertex data to subresource
-	mappedSubresource;
-	ZeroMemory(&mappedSubresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-	gpID3D11DeviceContext->Map(gpID3D11Buffer_VertexBuffer_quads_color, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubresource); //Map vertex buffer to this resources.
-																															//(vertexBiffer, are we sending multiple data{vertex,color,texture},We want to discrard older data, should we send data now ?(or static or dynamic draw , adress of subrespurce )
-	memcpy(mappedSubresource.pData, colorQuads, sizeof(float) * _ARRAYSIZE(colorQuads)); //copy vertertces to mappedSubResource data in pData
-	gpID3D11DeviceContext->Unmap(gpID3D11Buffer_VertexBuffer_quads_color, 0); //Once copied data to subresources then unmap the vertexBuffer from device context
-
-																			  /* If it was static draw then we need to put below call, but as we are in DYNAMIC draw this callis in draw
-																			  gpID3D11DeviceContext->IASetVertexBuffers(0, 1, &gpID3D11Buffer_VertexBuffer, &stride, &offset);
-																			  */
-
-
-
-
-																			  //*************************************************************************************************************************	
-
-
-
-
-																			  //**********************************************************************************************
-																			  // define and set the constant buffer
-	D3D11_BUFFER_DESC bufferDesc_ConstantBuffer;
+D3D11_BUFFER_DESC bufferDesc_ConstantBuffer;
 	ZeroMemory(&bufferDesc_ConstantBuffer, sizeof(D3D11_BUFFER_DESC));
 	bufferDesc_ConstantBuffer.Usage = D3D11_USAGE_DEFAULT;
 	bufferDesc_ConstantBuffer.ByteWidth = sizeof(CBUFFER); // see the declaration of 'CBUFFER' above [ XMMATRIX means float4x4 means 4*4 = 16 float values, each float is 4, so 16*4 = 64 ]
@@ -947,6 +740,7 @@ HRESULT initialize(void)
 		fclose(gpFile);
 	}
 	gpID3D11DeviceContext->VSSetConstantBuffers(0, 1, &gpID3D11Buffer_ConstantBuffer);
+	gpID3D11DeviceContext->PSSetConstantBuffers(0, 1, &gpID3D11Buffer_ConstantBuffer);
 
 	//**********  Copied code from Sir - need more deep dive
 	// set rasterization state 
@@ -1205,22 +999,18 @@ void display(void)
 
 	//************************************************** QUAD **************************************************
 	// select which vertex buffer to display
-	UINT stride = sizeof(float) * 3; // 3 is for x, y, z
-	UINT offset = 0;//Offset required 
+	UINT stride = sizeof(float) * 11; // 3 is for x, y, z
 
 
+	UINT offset = 0;
+	gpID3D11DeviceContext->IASetVertexBuffers(0, 1, &gpID3D11Buffer_VertexBuffer_cube_vcnp, &stride, &offset);
+	offset = 3 * sizeof(float);
+	gpID3D11DeviceContext->IASetVertexBuffers(1, 1, &gpID3D11Buffer_VertexBuffer_cube_vcnp, &stride, &offset);
+	offset = 6 * sizeof(float);
+	gpID3D11DeviceContext->IASetVertexBuffers(2, 1, &gpID3D11Buffer_VertexBuffer_cube_vcnp, &stride, &offset);
+	offset = 9 * sizeof(float);
+	gpID3D11DeviceContext->IASetVertexBuffers(3, 1, &gpID3D11Buffer_VertexBuffer_cube_vcnp, &stride, &offset);
 
-	stride = sizeof(float) * 3; // 3 is for x, y, z
-	offset = 0;
-	gpID3D11DeviceContext->IASetVertexBuffers(0, 1, &gpID3D11Buffer_VertexBuffer_Position_Cube, &stride, &offset);
-
-	gpID3D11DeviceContext->IASetVertexBuffers(2, 1, &gpID3D11Buffer_VertexBuffer_quads_color, &stride, &offset);
-
-	stride = sizeof(float) * 2; // 2 is for u, v
-	offset = 0;
-	gpID3D11DeviceContext->IASetVertexBuffers(1, 1, &gpID3D11Buffer_VertexBuffer_Texture_Cube, &stride, &offset); // 1st param '1' is for 1st slot used for 'color'
-
-																												  // bind texture and sampler as pixel shader resource
 	gpID3D11DeviceContext->PSSetShaderResources(0, 1, &gpID3D11ShaderResourceView_Texture_Cube);
 	gpID3D11DeviceContext->PSSetSamplers(0, 1, &gpID3D11SamplerState_Texture_Cube);
 
@@ -1303,17 +1093,6 @@ void uninitialize(void)
 		gpID3D11InputLayout = NULL;
 	}
 
-	if (gpID3D11Buffer_VertexBuffer_Position_Cube)
-	{
-		gpID3D11Buffer_VertexBuffer_Position_Cube->Release();
-		gpID3D11Buffer_VertexBuffer_Position_Cube = NULL;
-	}
-
-	if (gpID3D11Buffer_VertexBuffer_Texture_Cube)
-	{
-		gpID3D11Buffer_VertexBuffer_Texture_Cube->Release();
-		gpID3D11Buffer_VertexBuffer_Texture_Cube = NULL;
-	}
 
 	if (gpID3D11PixelShader)
 	{
